@@ -47,9 +47,9 @@ public class RobotContainer {
     var driveCommand = new RunCommand(
             () ->
                 m_robotDrive.drive(
-                    m_driverController.getY(GenericHID.Hand.kLeft),
-                    m_driverController.getX(GenericHID.Hand.kRight),
-                    m_driverController.getX(GenericHID.Hand.kLeft),
+                    -m_driverController.getRawAxis(1) * DriveConstants.kMaxSpeedMetersPerSecond,
+                    -m_driverController.getRawAxis(0) * DriveConstants.kMaxSpeedMetersPerSecond,
+                    m_driverController.getRawAxis(2) * DriveConstants.kMaxChassisAngularSpeedRadiansPerSecond,
                     false));
 
     driveCommand.addRequirements(m_robotDrive);
@@ -112,6 +112,8 @@ public class RobotContainer {
 
     // Reset odometry to the starting pose of the trajectory.
     m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+
+    m_robotDrive.showCurrentTrajectory(exampleTrajectory);
 
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));

@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.util.Units;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -20,7 +22,9 @@ import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static frc.robot.Constants.DriveConstants.*;
 
@@ -87,32 +91,10 @@ public class DriveSubsystem extends SubsystemBase {
 
   Field2d m_fieldSim = new Field2d();
 
-  // Using a DifferentialDrivetrainSim to represent chassis rotation
-  private DifferentialDrivetrainSim m_chassisSim = new DifferentialDrivetrainSim(
-          Constants.DriveConstants.kDrivetrainPlant,
-          Constants.DriveConstants.kDriveGearbox,
-          Constants.ModuleConstants.kDriveGearRatio,
-          Constants.DriveConstants.kTrackWidth,
-          Constants.ModuleConstants.kWheelDiameterMeters / 2.0,
-          null
-  );
-
   // Simulation variables
-  private double m_rotationInput;
+  private double m_invertRotationInput = -1;
   private double m_lastRotationSign;
-  private double m_invertRotationInput;
-
-  // To fake a rotation, we need to make the simulated chassis rotation speed equal to what we command it to be.
-  // Use the formula for angular velocity
-  // m_turnAdjustment = m_chassisSim.getRightVelocityMetersPerSecond() / (kTrackWidth / 2)
-  private double m_rotationAdjustment = 1;
-
-  private SwerveModuleState[] m_inputStates = {
-          new SwerveModuleState(),
-          new SwerveModuleState(),
-          new SwerveModuleState(),
-          new SwerveModuleState(),
-  };
+  private double m_yawValue;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -126,8 +108,8 @@ public class DriveSubsystem extends SubsystemBase {
     m_odometry.update(
         new Rotation2d(getHeading()),
         m_frontLeft.getState(),
-        m_rearLeft.getState(),
         m_frontRight.getState(),
+        m_rearLeft.getState(),
         m_rearRight.getState());
 
     // Update the poses for the swerveModules. Note that the order of rotating the position and then
@@ -137,7 +119,8 @@ public class DriveSubsystem extends SubsystemBase {
               .rotateBy(new Rotation2d(getHeading()))
               .plus(getPose().getTranslation());
 
-      m_modulePose[i] = new Pose2d(modulePositionFromChassis, m_swerveModules[i].getState().angle);
+      // Module's heading is it's angle relative to the chassis heading
+      m_modulePose[i] = new Pose2d(modulePositionFromChassis, m_swerveModules[i].getState().angle.plus(getPose().getRotation()));
     }
 
     m_fieldSim.setRobotPose(getPose());
@@ -160,6 +143,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(pose, m_gyro.getRotation2d());
+    resetEncoders();
   }
 
   /**
@@ -173,7 +157,7 @@ public class DriveSubsystem extends SubsystemBase {
   @SuppressWarnings("ParameterName")
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
     // Save rotation input for chassis rotation sim
-    m_rotationInput = rot;
+
     var swerveModuleStates =
         DriveConstants.kDriveKinematics.toSwerveModuleStates(
             fieldRelative
@@ -181,7 +165,6 @@ public class DriveSubsystem extends SubsystemBase {
                 : new ChassisSpeeds(xSpeed, ySpeed, rot));
     SwerveDriveKinematics.normalizeWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    m_inputStates = swerveModuleStates;
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
@@ -194,12 +177,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @param desiredStates The desired SwerveModule states.
    */
   public void setModuleStates(SwerveModuleState[] desiredStates) {
-    // Save rotation input for chassis rotation sim
-    m_rotationInput = kDriveKinematics.toChassisSpeeds(desiredStates).omegaRadiansPerSecond;
-
     SwerveDriveKinematics.normalizeWheelSpeeds(
         desiredStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    m_inputStates = desiredStates;
     m_frontLeft.setDesiredState(desiredStates[0]);
     m_frontRight.setDesiredState(desiredStates[1]);
     m_rearLeft.setDesiredState(desiredStates[2]);
@@ -209,8 +188,8 @@ public class DriveSubsystem extends SubsystemBase {
   /** Resets the drive encoders to currently read a position of 0. */
   public void resetEncoders() {
     m_frontLeft.resetEncoders();
-    m_rearLeft.resetEncoders();
     m_frontRight.resetEncoders();
+    m_rearLeft.resetEncoders();
     m_rearRight.resetEncoders();
   }
 
@@ -237,31 +216,37 @@ public class DriveSubsystem extends SubsystemBase {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 
+  /**
+   * Plot the current trajectory using Field2d
+   */
+  public void showCurrentTrajectory(Trajectory trajectory) {
+    var trajectoryStates = new ArrayList<Pose2d>();
+
+    trajectoryStates.addAll(trajectory.getStates().stream()
+            .map(state -> state.poseMeters)
+            .collect(Collectors.toList()));
+
+    m_fieldSim.getObject("Trajectory").setPoses(trajectoryStates);
+  }
 
   @Override
   public void simulationPeriodic() {
     m_frontLeft.simulationPeriodic(0.02);
-    m_rearLeft.simulationPeriodic(0.02);
     m_frontRight.simulationPeriodic(0.02);
+    m_rearLeft.simulationPeriodic(0.02);
     m_rearRight.simulationPeriodic(0.02);
 
-    // Fake chassis input by using rotation input / max rotation to get a [-1, 1] range, then multiply by battery voltage
-    // and then the rotation adjustment value divided by 2 (To cut in half for both sides)
-    double chassisInputVoltage = (m_rotationInput / Constants.ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond) *
-            RobotController.getBatteryVoltage() * m_rotationAdjustment  / 2;
+    SwerveModuleState[] moduleStates = {
+      m_frontLeft.getState(),
+      m_frontRight.getState(),
+      m_rearLeft.getState(),
+      m_rearRight.getState()
+    };
 
-    // If the rotation changes due to SwerveDriveState.optimize(), you must rotate the chassis the other way.
-    // You should only need to look at one of the modules for this.
-    double currentRotationSign = Math.signum(m_inputStates[0].angle.getRadians());
-    if(m_lastRotationSign != currentRotationSign){
-      m_invertRotationInput = -m_invertRotationInput;
-    }
-    m_lastRotationSign = currentRotationSign;
-    chassisInputVoltage *= m_invertRotationInput;
+    var chassisSpeed = kDriveKinematics.toChassisSpeeds(moduleStates);
+    double chassisRotationSpeed = chassisSpeed.omegaRadiansPerSecond;
 
-    m_chassisSim.setInputs(chassisInputVoltage, -chassisInputVoltage);
-    m_chassisSim.update(0.02);
-
-    m_gyroSim.setAngle(m_chassisSim.getHeading().getDegrees());
+    m_yawValue += chassisRotationSpeed * 0.02;
+    m_gyroSim.setAngle(Units.radiansToDegrees(m_yawValue));
   }
 }

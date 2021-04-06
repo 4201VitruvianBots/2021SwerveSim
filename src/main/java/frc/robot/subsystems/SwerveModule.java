@@ -9,10 +9,8 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import frc.robot.Constants;
 import frc.robot.Constants.ModuleConstants;
@@ -20,8 +18,7 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 
-import static frc.robot.Constants.ModuleConstants.kDriveGearRatio;
-import static frc.robot.Constants.ModuleConstants.kTurnGearRatio;
+import static frc.robot.Constants.ModuleConstants.*;
 
 public class SwerveModule {
   private final Spark m_driveMotor;
@@ -48,14 +45,14 @@ public class SwerveModule {
 
   // Using FlywheelSim as a stand-in for a simple motor
   private final FlywheelSim m_turnMotorSim = new FlywheelSim(
-          LinearSystemId.identifyVelocitySystem(ModuleConstants.kvVoltSecondsPerMeter, ModuleConstants.kaVoltSecondsSquaredPerMeter),
-          DCMotor.getFalcon500(1),
+          LinearSystemId.identifyVelocitySystem(ModuleConstants.kvVoltSecondsPerRadian, ModuleConstants.kaVoltSecondsSquaredPerRadian),
+          kTurnMotorGearbox,
           kTurnGearRatio
   );
 
   private final FlywheelSim m_driveMotorSim = new FlywheelSim(
           LinearSystemId.identifyVelocitySystem(Constants.DriveConstants.kvVoltSecondsPerMeter, Constants.DriveConstants.kaVoltSecondsSquaredPerMeter),
-          DCMotor.getFalcon500(1),
+          kDriveMotorGearbox,
           kDriveGearRatio
   );
 
@@ -116,7 +113,7 @@ public class SwerveModule {
    * @return The current state of the module.
    */
   public SwerveModuleState getState() {
-    return new SwerveModuleState(m_driveEncoder.getRate(), new Rotation2d(m_turningEncoder.get()));
+    return new SwerveModuleState(m_driveEncoder.getRate(), new Rotation2d(m_turningEncoder.getDistance()));
   }
 
   /**
@@ -127,7 +124,7 @@ public class SwerveModule {
   public void setDesiredState(SwerveModuleState desiredState) {
     // Optimize the reference state to avoid spinning further than 90 degrees
     SwerveModuleState state =
-        SwerveModuleState.optimize(desiredState, new Rotation2d(m_turningEncoder.get()));
+        SwerveModuleState.optimize(desiredState, new Rotation2d(m_turningEncoder.getDistance()));
 
     // Calculate the drive output from the drive PID controller.
     m_driveOutput =
@@ -135,7 +132,7 @@ public class SwerveModule {
 
     // Calculate the turning motor output from the turning PID controller.
     m_turnOutput =
-        m_turningPIDController.calculate(m_turningEncoder.get(), state.angle.getRadians());
+        m_turningPIDController.calculate(m_turningEncoder.getDistance(), state.angle.getRadians());
 
     // Calculate the turning motor output from the turning PID controller.
     m_driveMotor.set(m_driveOutput);
@@ -157,10 +154,10 @@ public class SwerveModule {
     m_driveMotorSim.update(dt);
 
     // Calculate distance traveled using RPM * dt
-    m_simTurnEncoderDistance += m_turnMotorSim.getAngularVelocityRPM() * dt;
+    m_simTurnEncoderDistance += m_turnMotorSim.getAngularVelocityRadPerSec() * dt;
     m_turningEncoderSim.setDistance(m_simTurnEncoderDistance);
-    m_turningEncoderSim.setRate(m_turnMotorSim.getAngularVelocityRPM());
+    m_turningEncoderSim.setRate(m_turnMotorSim.getAngularVelocityRadPerSec());
 
-    m_driveEncoderSim.setRate(m_driveMotorSim.getAngularVelocityRPM());
+    m_driveEncoderSim.setRate(m_driveMotorSim.getAngularVelocityRadPerSec());
   }
 }
