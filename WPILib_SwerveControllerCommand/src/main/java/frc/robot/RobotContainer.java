@@ -45,13 +45,13 @@ public class RobotContainer {
         // A split-stick arcade command, with forward/backward controlled by the left
         // hand, and turning controlled by the right.
 
-    // Note: X and Y for Throttle/Strafe is inverted to match WPILib coordinate system
+    // Note: X, Y, and rot for Throttle/Strafe/Rotation is inverted to match WPILib coordinate system
     var driveCommand = new RunCommand(
             () ->
                 m_robotDrive.drive(
                     -m_driverController.getRawAxis(1) * DriveConstants.kMaxSpeedMetersPerSecond,
                     -m_driverController.getRawAxis(0) * DriveConstants.kMaxSpeedMetersPerSecond,
-                    m_driverController.getRawAxis(2) * DriveConstants.kMaxChassisAngularSpeedRadiansPerSecond,
+                    -m_driverController.getRawAxis(2) * DriveConstants.kMaxChassisAngularSpeedRadiansPerSecond,
                     false));
 
     driveCommand.addRequirements(m_robotDrive);

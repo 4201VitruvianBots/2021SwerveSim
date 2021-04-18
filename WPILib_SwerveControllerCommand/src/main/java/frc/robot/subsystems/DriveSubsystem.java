@@ -247,6 +247,6 @@ public class DriveSubsystem extends SubsystemBase {
     double chassisRotationSpeed = chassisSpeed.omegaRadiansPerSecond;
 
     m_yawValue += chassisRotationSpeed * 0.02;
-    m_gyroSim.setAngle(Units.radiansToDegrees(m_yawValue));
+    m_gyroSim.setAngle(-Units.radiansToDegrees(m_yawValue));
   }
 }
