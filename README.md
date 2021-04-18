@@ -3,6 +3,11 @@ This repository contains two code examples on how to implement a working swerve 
 
 More details on how this was developed can be found in the ChiefDelphi post we made.
 
+Also, see the wiki on this repo for more details on specific topics.
+
+We will be updating/mainitaing this repo to help other teams until a more official swerve simulation is implemented in WPILib.
+
+
 ## WPILib_SwerveControllerCommand
 This is an example template that uses the WPILib SwerveControllerCommand as the baseline to implement a swerve sim. This tries to make as little changes as possible from the baseline while also following the WPILib style of making then code as generic as possible to make it easier to adapt for teams using different vendor motors.
 
