@@ -33,6 +33,10 @@ public class AutoNavSlalom extends SequentialCommandGroup {
         };
         Pose2d startPosition = waypoints[0];
 
+        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
+                new SetDriveNeutralMode(swerveDrive, true)
+        );
+
         // Create config for trajectory
         TrajectoryConfig config =
                 new TrajectoryConfig(Constants.AutoConstants.kMaxSpeedMetersPerSecond,
@@ -40,11 +44,6 @@ public class AutoNavSlalom extends SequentialCommandGroup {
                         // Add kinematics to ensure max speed is actually obeyed
                         .setKinematics(Constants.DriveConstants.kDriveKinematics);
         config.setReversed(false);
-
-
-        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
-                new SetDriveNeutralMode(swerveDrive, true)
-        );
 
         var trajectory = TrajectoryGenerator.generateTrajectory(Arrays.asList(waypoints.clone()), config);
 
@@ -54,6 +53,8 @@ public class AutoNavSlalom extends SequentialCommandGroup {
                 .collect(Collectors.toList()));
 
         fieldSim.getField2d().getObject("trajectory").setPoses(trajectoryStates);
+
+        addCommands(TrajectoryUtils.generateSwerveCommand(swerveDrive, trajectory, ()-> new Rotation2d()));
 
         addCommands(new InstantCommand(() -> swerveDrive.drive(0, 0, 0, false), swerveDrive));// Run path following command, then stop at the end.
     }

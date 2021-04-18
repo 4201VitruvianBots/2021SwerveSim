@@ -37,6 +37,9 @@ public class AutoNavBarrel extends SequentialCommandGroup {
         
         };
         Pose2d startPosition = waypoints[0];
+        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
+                new SetDriveNeutralMode(swerveDrive, true)
+        );
 
         // Create config for trajectory
         TrajectoryConfig config =
@@ -45,10 +48,6 @@ public class AutoNavBarrel extends SequentialCommandGroup {
                         // Add kinematics to ensure max speed is actually obeyed
                         .setKinematics(Constants.DriveConstants.kDriveKinematics);
         config.setReversed(false);
-
-        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
-                new SetDriveNeutralMode(swerveDrive, true)
-        );
 
         var trajectory = TrajectoryGenerator.generateTrajectory(Arrays.asList(waypoints.clone()), config);
 

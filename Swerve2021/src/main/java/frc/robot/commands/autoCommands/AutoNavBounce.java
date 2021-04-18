@@ -46,6 +46,10 @@ public class AutoNavBounce extends SequentialCommandGroup {
         };
         Pose2d startPosition = waypointsA[0];
 
+        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
+                new SetDriveNeutralMode(swerveDrive, true)
+        );
+
         // Create config for trajectory
         TrajectoryConfig config =
                 new TrajectoryConfig(Constants.AutoConstants.kMaxSpeedMetersPerSecond,
@@ -54,9 +58,6 @@ public class AutoNavBounce extends SequentialCommandGroup {
                         .setKinematics(Constants.DriveConstants.kDriveKinematics);
         config.setReversed(false);
 
-        addCommands(new SetOdometry(swerveDrive, fieldSim, startPosition),
-                new SetDriveNeutralMode(swerveDrive, true)
-        );
 
         var trajectoryA = TrajectoryGenerator.generateTrajectory(Arrays.asList(waypointsA.clone()), config);
         var trajectoryC = TrajectoryGenerator.generateTrajectory(Arrays.asList(waypointsC.clone()), config);
