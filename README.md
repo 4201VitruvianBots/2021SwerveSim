@@ -9,7 +9,7 @@ We will be updating/mainitaing this repo to help other teams until a more offici
 
 
 ## WPILib_SwerveControllerCommand
-This is an example template that uses the WPILib SwerveControllerCommand as the baseline to implement a swerve sim. This tries to make as little changes as possible from the baseline while also following the WPILib style of making then code as generic as possible to make it easier to adapt for teams using different vendor motors.
+This is an example template that uses the WPILib SwerveControllerCommand as the baseline to implement a swerve sim. This tries to make as little changes as possible from the baseline while also following the WPILib style of making then code as generic as possible to make it easier to adapt for teams using hardware/libraries from different vendors.
 
 ## Swerve2021
 This is a snapshot of our 2021 Swerve Code. The main repo is [TRex2021](https://github.com/4201VitruvianBots/TRex2021), but since it is currently in development, we've opted to make a snapshot of it to make it easier for other teams to use.
