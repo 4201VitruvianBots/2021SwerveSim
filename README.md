@@ -3,7 +3,7 @@ This repository contains two code examples on how to implement a working swerve 
 
 More details on how this was developed can be found in the ChiefDelphi post we made.
 
-Also, see the wiki on this repo for more details on how to implement this onto your own code.
+See the [wiki](https://github.com/4201VitruvianBots/2021SwerveSim/wiki) on this repo for more details on how to implement this onto your own code.
 
 We will be updating/mainitaing this repo to help other teams until a more official swerve simulation is implemented in WPILib.
 
