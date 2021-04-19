@@ -1,15 +1,12 @@
 # 2021SwerveSim
-This repository contains two code examples on how to implement a working swerve sim using the 2021 WPILib libraries. This was done utilizing the FlywheelSim object as a model for the swerve motors and then combining them together to make a somewhat realizitic model for a swerve drive. This can operate the robot using both Autonomous and Teleop Code. The only limitation this has is that you cannot define a trajectory that utilizes a moving heading for the swerve bot to use (e.g. strafe/orbit a target). Otherwise, for most teams attempting to develop swerve code, this should cover 95% of their needs.
+This repository contains two code examples on how to implement a working swerve sim using the 2021 WPILib libraries. This was done utilizing the FlywheelSim object as a model for the swerve motors and then combining them together to make a somewhat realizitic model for a swerve drive. This can operate the robot using both Autonomous and Teleop Code. The only limitation this model has is that you cannot define a trajectory that utilizes a moving heading for the swerve bot to use (e.g. strafe/orbit a target). Otherwise, for most teams attempting to develop swerve code, this should cover 95% of their needs.
 
 More details on how this was developed can be found in the ChiefDelphi post we made.
 
 See the [wiki](https://github.com/4201VitruvianBots/2021SwerveSim/wiki) on this repo for more details on how to implement this onto your own code.
 
-We will be updating/mainitaing this repo to help other teams until a more official swerve simulation is implemented in WPILib.
-
-
 ## WPILib_SwerveControllerCommand
-This is an example template that uses the WPILib SwerveControllerCommand as the baseline to implement a swerve sim. This tries to make as little changes as possible from the baseline while also following the WPILib style of making then code as generic as possible to make it easier to adapt for teams using hardware/libraries from different vendors.
+This is an example template that uses the WPILib SwerveControllerCommand as the baseline to implement a swerve sim. This tries to make as little changes as possible while also following the WPILib style of making the code as generic as possible to make it easier to adapt for teams using hardware/libraries from different vendors.
 
 ## Swerve2021
 This is a snapshot of our 2021 Swerve Code. The main repo is [TRex2021](https://github.com/4201VitruvianBots/TRex2021), but since it is currently in development, we've opted to make a snapshot of it to make it easier for other teams to use.
