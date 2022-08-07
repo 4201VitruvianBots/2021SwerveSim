@@ -33,7 +33,7 @@ public class SwerveDrive extends SubsystemBase {
 
     private int navXDebug = 0;
 
-    private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(kDriveKinematics, getRotation());
+    private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(kDriveKinematics, getHeadingRotation2d());
 //    private final SwerveDrivePoseEstimator m_odometry = new SwerveDrivePoseEstimator(
 //        getRotation(),
 //        new Pose2d(),
@@ -89,8 +89,8 @@ public class SwerveDrive extends SubsystemBase {
      *
      * @return The angle of the robot.
      */
-    public Rotation2d getRotation() {
-        return Rotation2d.fromDegrees(getHeading());
+    public Rotation2d getHeadingRotation2d() {
+        return Rotation2d.fromDegrees(getHeadingDegrees());
     }
 
     /**
@@ -103,11 +103,11 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     /**
-     * Returns the heading of the robot.
+     * Returns the heading of the robot in degrees.
      *
      * @return the robot's heading in degrees, from 180 to 180
      */
-    public double getHeading() {
+    public double getHeadingDegrees() {
         try {
             return Math.IEEEremainder(-mNavX.getAngle(), 360);
         } catch (Exception e) {
@@ -162,7 +162,7 @@ public class SwerveDrive extends SubsystemBase {
 
         var swerveModuleStates = kDriveKinematics.toSwerveModuleStates(
                 fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        xSpeed, ySpeed, rot, getRotation())
+                        xSpeed, ySpeed, rot, getHeadingRotation2d())
                         : new ChassisSpeeds(xSpeed, ySpeed, rot)
         ); //from 2910's code
         SwerveDriveKinematics.normalizeWheelSpeeds(swerveModuleStates, Constants.DriveConstants.kMaxSpeedMetersPerSecond);
@@ -197,7 +197,7 @@ public class SwerveDrive extends SubsystemBase {
      */
     public void updateOdometry() {
         m_odometry.update(
-            getRotation(),
+            getHeadingRotation2d(),
             mSwerveModules[0].getState(),
             mSwerveModules[1].getState(),
             mSwerveModules[2].getState(),
@@ -205,8 +205,8 @@ public class SwerveDrive extends SubsystemBase {
         );
         // Update module positions based on the chassis' position, but keep the module heading
         for (int i = 0; i < mSwerveModules.length; i++) {
-            var modulePositionFromChassis = modulePositions[i].rotateBy(getRotation()).plus(getPose().getTranslation());
-            mSwerveModules[i].setPose(new Pose2d(modulePositionFromChassis, mSwerveModules[i].getHeading().plus(getRotation())));
+            var modulePositionFromChassis = modulePositions[i].rotateBy(getHeadingRotation2d()).plus(getPose().getTranslation());
+            mSwerveModules[i].setPose(new Pose2d(modulePositionFromChassis, mSwerveModules[i].getHeading().plus(getHeadingRotation2d())));
         }
 
 //        m_odometry.addVisionMeasurement(SimulationReferencePose.getRobotFieldPose(), Timer.getFPGATimestamp() + 0.2);
@@ -225,7 +225,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     private void updateSmartDashboard() {
-        SmartDashboardTab.putNumber("SwerveDrive","Chassis Angle",getHeading());
+        SmartDashboardTab.putNumber("SwerveDrive","Chassis Angle",getHeadingDegrees());
         for(int i = 0; i < mSwerveModules.length; i++) {
             SmartDashboardTab.putNumber("SwerveDrive", "Swerve Module " + i + " Angle", mSwerveModules[i].getState().angle.getDegrees());
             SmartDashboardTab.putNumber("SwerveDrive", "Swerve Module " + i + " Speed", mSwerveModules[i].getState().speedMetersPerSecond);
