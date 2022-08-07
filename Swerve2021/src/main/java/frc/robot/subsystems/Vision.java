@@ -158,7 +158,7 @@ public class Vision extends SubsystemBase {
 				double yDistance = -Math.signum(getFilteredTargetX()) * Math.abs(Math.sin(targetRadians)) * getTargetDistance();
 
 				m_swerveDrive.resetOdometry(new Pose2d(xDistance, yDistance, new Rotation2d()),
-						Rotation2d.fromDegrees(m_swerveDrive.getHeading()));
+						m_swerveDrive.getHeadingRotation2d());
 
 				resetPose = true;
 			}

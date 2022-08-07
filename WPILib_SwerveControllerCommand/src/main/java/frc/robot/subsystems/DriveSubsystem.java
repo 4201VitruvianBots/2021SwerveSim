@@ -106,7 +106,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
     // Update the odometry in the periodic block
     m_odometry.update(
-        new Rotation2d(getHeading()),
+        getHeading(),
         m_frontLeft.getState(),
         m_frontRight.getState(),
         m_rearLeft.getState(),
@@ -116,7 +116,7 @@ public class DriveSubsystem extends SubsystemBase {
     // adding the translation matters
     for (int i = 0; i < m_swerveModules.length; i++) {
       var modulePositionFromChassis = kModulePositions[i]
-              .rotateBy(new Rotation2d(getHeading()))
+              .rotateBy(getHeading())
               .plus(getPose().getTranslation());
 
       // Module's heading is it's angle relative to the chassis heading
@@ -203,8 +203,8 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @return the robot's heading in degrees, from -180 to 180
    */
-  public double getHeading() {
-    return m_gyro.getRotation2d().getDegrees();
+  public Rotation2d getHeading() {
+    return m_gyro.getRotation2d();
   }
 
   /**
