@@ -1,3 +1,5 @@
+NOTE: This repository is out of date, we will be creating a new repository to be compliant with WPILib 2023 [here](https://github.com/4201VitruvianBots/2023SwerveSim).
+
 # 2021SwerveSim
 This repository contains two code examples on how to implement a working swerve sim using the 2021 WPILib libraries. This was done utilizing the FlywheelSim object as a model for the swerve motors and then combining them together to make a somewhat realizitic model for a swerve drive. This can operate the robot using both Autonomous and Teleop Code. The only limitation this model has is that you cannot define a trajectory that utilizes a moving heading for the swerve bot to use (e.g. strafe/orbit a target). Otherwise, for most teams attempting to develop swerve code, this should cover 95% of their needs.
 
